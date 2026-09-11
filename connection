@@ -1,0 +1,396 @@
+# SafeRide+ – Complete Hardware Connections
+
+SafeRide+ combines a Raspberry Pi for AI-based driver monitoring with an ESP32 for sensor-based rider safety monitoring.
+
+---
+
+## 1. Raspberry Pi – Camera Connection
+
+For the USB camera:
+
+| Camera | Raspberry Pi          |
+| ------ | --------------------- |
+| USB    | Raspberry Pi USB Port |
+
+The camera is used for:
+
+* Drowsiness Detection
+* Eye/Mouth Monitoring
+* Mobile Phone Usage Detection
+* Driver Monitoring
+
+### Raspberry Pi Setup
+
+```text
+USB Camera
+    │
+    ▼
+Raspberry Pi
+    │
+    ├── AI Drowsiness Detection
+    ├── Mobile Usage Detection
+    └── Alert System
+```
+
+---
+
+# 2. Raspberry Pi – Alert LED Connection
+
+An external LED can be connected directly to a GPIO pin through a resistor.
+
+| Component       | Raspberry Pi                  |
+| --------------- | ----------------------------- |
+| LED Anode (+)   | GPIO 17 through 220Ω resistor |
+| LED Cathode (-) | GND                           |
+
+### Connection
+
+```text
+Raspberry Pi GPIO 17
+        │
+        ▼
+     220Ω Resistor
+        │
+        ▼
+    LED Anode (+)
+    LED Cathode (-)
+        │
+        ▼
+       GND
+```
+
+The LED turns ON when drowsiness is detected.
+
+---
+
+# 3. ESP32 – MPU6050 Connection
+
+The MPU6050 communicates with the ESP32 using I2C.
+
+| MPU6050 | ESP32   |
+| ------- | ------- |
+| VCC     | 3.3V    |
+| GND     | GND     |
+| SDA     | GPIO 21 |
+| SCL     | GPIO 22 |
+
+### Purpose
+
+The MPU6050 is used for:
+
+* Accident detection
+* Sudden impact detection
+* Tilt detection
+* Abnormal movement detection
+
+---
+
+# 4. ESP32 – MAX30102 Connection
+
+The MAX30102 also uses the I2C communication protocol.
+
+| MAX30102 | ESP32   |
+| -------- | ------- |
+| VCC/VIN  | 3.3V    |
+| GND      | GND     |
+| SDA      | GPIO 21 |
+| SCL      | GPIO 22 |
+
+### Purpose
+
+The MAX30102 is used for:
+
+* Heart rate monitoring
+* Blood oxygen (SpO₂) monitoring
+
+The MAX30102 and MPU6050 share the same I2C bus.
+
+```text
+                    ESP32
+                      │
+              ┌───────┴───────┐
+              │               │
+           GPIO 21         GPIO 22
+             SDA             SCL
+              │               │
+        ┌─────┴─────┐   ┌─────┴─────┐
+        │  MPU6050  │   │  MAX30102 │
+        └───────────┘   └───────────┘
+```
+
+---
+
+# 5. ESP32 – MQ-3 Alcohol Sensor Connection
+
+| MQ-3 | ESP32         |
+| ---- | ------------- |
+| VCC  | 5V/VIN*       |
+| GND  | GND           |
+| AO   | GPIO 34       |
+| DO   | Optional GPIO |
+
+### Purpose
+
+The MQ-3 is used to detect alcohol presence in the rider's breath.
+
+```text
+MQ-3
+ │
+ ├── VCC ───► ESP32 VIN/5V*
+ ├── GND ───► ESP32 GND
+ └── AO  ───► ESP32 GPIO 34
+```
+
+**Important:** ESP32 GPIO pins are not 5V tolerant. If the MQ-3 analog output can reach 5V, use a voltage divider before connecting AO to GPIO 34.
+
+---
+
+# 6. ESP32 – GPS Connection
+
+The GPS module communicates with the ESP32 through UART.
+
+| GPS | ESP32               |
+| --- | ------------------- |
+| VCC | Module-rated supply |
+| GND | GND                 |
+| TX  | GPIO 16 (RX)        |
+| RX  | GPIO 17 (TX)        |
+
+### Connection
+
+```text
+GPS TX ───────► ESP32 GPIO 16 (RX)
+GPS RX ◄────── ESP32 GPIO 17 (TX)
+GPS GND ──────► ESP32 GND
+GPS VCC ──────► Module-rated supply
+```
+
+### Purpose
+
+GPS provides:
+
+* Real-time location
+* Accident location
+* Emergency location sharing
+* Navigation support
+
+---
+
+# 7. ESP32 – Buzzer Connection
+
+| Buzzer       | ESP32   |
+| ------------ | ------- |
+| Positive (+) | GPIO 33 |
+| Negative (-) | GND     |
+
+### Connection
+
+```text
+ESP32 GPIO 33
+      │
+      ▼
+    Buzzer
+      │
+      ▼
+     GND
+```
+
+The buzzer can provide an audible warning during:
+
+* Drowsiness
+* Alcohol detection
+* Accident detection
+* Emergency conditions
+
+For higher-current buzzers, a transistor driver should be used instead of connecting the buzzer directly to the GPIO.
+
+---
+
+# 8. ESP32 – Alert LED Connection
+
+| LED         | ESP32                         |
+| ----------- | ----------------------------- |
+| Anode (+)   | GPIO 26 through 220Ω resistor |
+| Cathode (-) | GND                           |
+
+### Connection
+
+```text
+ESP32 GPIO 26
+      │
+      ▼
+   220Ω Resistor
+      │
+      ▼
+   LED Anode (+)
+   LED Cathode (-)
+      │
+      ▼
+     GND
+```
+
+The LED can indicate:
+
+* Alcohol detected
+* Accident detected
+* Emergency alert
+* System warning
+
+---
+
+# 9. ESP32 – Light Sensor Connection
+
+For an analog light sensor/LDR module:
+
+| Light Sensor | ESP32   |
+| ------------ | ------- |
+| VCC          | 3.3V    |
+| GND          | GND     |
+| AO           | GPIO 35 |
+
+### Purpose
+
+The light sensor detects ambient light conditions and can be used for the adaptive anti-glare visor system.
+
+```text
+Light Sensor
+ │
+ ├── VCC ───► ESP32 3.3V
+ ├── GND ───► ESP32 GND
+ └── AO  ───► ESP32 GPIO 35
+```
+
+---
+
+# 10. Complete ESP32 Pin Configuration
+
+| Function            | Component    | ESP32 Pin |
+| ------------------- | ------------ | --------- |
+| I2C SDA             | MPU6050      | GPIO 21   |
+| I2C SCL             | MPU6050      | GPIO 22   |
+| I2C SDA             | MAX30102     | GPIO 21   |
+| I2C SCL             | MAX30102     | GPIO 22   |
+| Alcohol Analog      | MQ-3         | GPIO 34   |
+| Light Sensor Analog | Light Sensor | GPIO 35   |
+| GPS RX              | GPS TX       | GPIO 16   |
+| GPS TX              | GPS RX       | GPIO 17   |
+| Buzzer              | Buzzer       | GPIO 33   |
+| Alert LED           | LED          | GPIO 26   |
+
+---
+
+# 11. Overall SafeRide+ Hardware Architecture
+
+```text
+                         SafeRide+
+                             │
+              ┌──────────────┴──────────────┐
+              │                             │
+        Raspberry Pi                      ESP32
+              │                             │
+          USB Camera                 ┌───────┼────────┐
+              │                      │       │        │
+              ▼                      ▼       ▼        ▼
+       AI Processing              MPU6050 MAX30102  MQ-3
+              │                      │       │        │
+       ┌──────┴──────┐               │       │        │
+       │             │               └───────┼────────┘
+       ▼             ▼                       │
+ Drowsiness      Mobile Usage               │
+ Detection        Detection                  │
+       │             │                       │
+       └──────┬──────┘                       │
+              │                              │
+              ▼                              ▼
+         Alert LED                        Buzzer
+                                            │
+                                            ▼
+                                       Rider Alert
+```
+
+---
+
+# 12. System Working
+
+```text
+Camera
+   │
+   ▼
+Raspberry Pi
+   │
+   ▼
+AI Model
+   │
+   ├── Driver Normal ─────► No Alert
+   │
+   └── Drowsiness ────────► LED/Buzzer Alert
+
+
+Sensors
+   │
+   ▼
+ESP32
+   │
+   ├── MPU6050 ──► Accident/Impact Detection
+   │
+   ├── MAX30102 ─► Heart Rate + SpO₂
+   │
+   ├── MQ-3 ─────► Alcohol Detection
+   │
+   ├── GPS ──────► Location Tracking
+   │
+   └── Light ────► Adaptive Visor Control
+```
+
+---
+
+## 13. Safety Notes
+
+* Always verify the voltage requirements of the exact sensor module before powering it.
+* ESP32 GPIO pins must not receive 5V signals.
+* Use a resistor with LEDs.
+* Use a transistor/MOSFET driver for high-current loads.
+* Connect all modules to a common ground where appropriate.
+* MQ-series sensors require warm-up time and calibration for reliable readings.
+* Sensor readings shown by the prototype should be treated as experimental unless properly calibrated and validated.
+
+---
+
+## 14. Project Components
+
+### Main Controllers
+
+* Raspberry Pi
+* ESP32
+
+### AI/Computer Vision
+
+* USB Camera
+* OpenCV
+* MediaPipe
+* Drowsiness Detection Model
+
+### Safety Sensors
+
+* MPU6050
+* MAX30102
+* MQ-3
+* GPS Module
+* Light Sensor
+
+### Alert Components
+
+* LED
+* 220Ω Resistor
+* Buzzer
+
+### Main Features Demonstrated
+
+* AI-based drowsiness detection
+* Mobile usage detection
+* Alcohol detection
+* Accident detection
+* Rider health monitoring
+* GPS location tracking
+* Adaptive visor concept
+* Audible and visual safety alerts
